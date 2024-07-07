@@ -6,3 +6,9 @@ app.egg-info
 htmlcov
 .cache
 .venv
+
+# Ignore all .env files
+.env
+*.env
+**/.env
+**/*.env
