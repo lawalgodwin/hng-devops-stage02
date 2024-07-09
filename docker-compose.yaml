@@ -1,0 +1,66 @@
+---
+
+services:
+
+  db:
+    image: postgres
+    restart: always
+    container_name: db
+    env_file:
+      - "$PWD/backend/.env"
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - "$PWD/my-postgres.conf:/etc/postgresql/postgresql.conf"
+      - "$PWD/init.sql:/docker-entrypoint-initdb.d/init.sql"
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      - webnet
+
+  adminer:
+    image: adminer
+    restart: always
+    environment:
+      - ADMINER_DEFAULT_SERVER=db
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    networks:
+      - webnet
+    
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    container_name: backend
+    env_file:
+      - "$PWD/backend/.env"
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    networks:
+      - webnet
+  
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    env_file:
+      - "$PWD/frontend/.env"
+    ports:
+      - 80:80
+    depends_on:
+      - db
+    networks:
+      - webnet
+volumes:
+  pgdata:
+
+networks:
+  webnet:
