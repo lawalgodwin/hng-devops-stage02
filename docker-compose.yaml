@@ -17,7 +17,7 @@ services:
     ports:
       - 5432:5432
     networks:
-      - webnet
+      - dbnet
 
   adminer:
     image: adminer
@@ -29,7 +29,8 @@ services:
     depends_on:
       - db
     networks:
-      - webnet
+      - dbnet
+      - proxynet
     
   backend:
     build: 
@@ -44,6 +45,8 @@ services:
     depends_on:
       - db
     networks:
+      - dbnet
+      - proxynet
       - webnet
   
   frontend:
@@ -54,13 +57,30 @@ services:
     env_file:
       - "$PWD/frontend/.env"
     ports:
-      - 80:80
+      - 5173:80
     depends_on:
       - db
     networks:
       - webnet
+      - proxynet
+  
+  proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+    networks:
+      - proxynet
+
 volumes:
   pgdata:
 
 networks:
   webnet:
+  proxynet:
+  dbnet:
